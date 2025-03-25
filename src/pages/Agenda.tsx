@@ -23,6 +23,7 @@ const AgendaPage = () => {
   const [filtro, setFiltro] = useState<string>('todos');
   const [sortBy, setSortBy] = useState<string>('data');
   const [notificationsPermission, setNotificationsPermission] = useState<boolean>(false);
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   
   // Load eventos from localStorage
   useEffect(() => {
@@ -113,6 +114,8 @@ const AgendaPage = () => {
       notificacaoAntecipada: 1,
       notificado: false,
     });
+    
+    setDialogOpen(true);
   };
   
   // Handle form submit for evento
@@ -162,6 +165,7 @@ const AgendaPage = () => {
     });
     
     setCurrentEvento(null);
+    setDialogOpen(false);
   };
   
   // Handle evento field change
@@ -208,6 +212,12 @@ const AgendaPage = () => {
       title: "WhatsApp",
       description: "Abrindo WhatsApp com as informações do evento.",
     });
+  };
+  
+  // Edit an existing evento
+  const handleEditEvento = (evento: Evento) => {
+    setCurrentEvento({...evento});
+    setDialogOpen(true);
   };
   
   // Filter and sort eventos
@@ -283,8 +293,12 @@ const AgendaPage = () => {
   // Format date
   const formatDate = (dateStr: string): string => {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-BR');
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('pt-BR');
+    } catch (e) {
+      return dateStr;
+    }
   };
   
   // Check if event is today
@@ -307,123 +321,10 @@ const AgendaPage = () => {
         </div>
         
         <div className="flex items-center gap-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="gap-1.5" onClick={initNewEvento}>
-                <Plus className="h-4 w-4" />
-                Adicionar Evento
-              </Button>
-            </DialogTrigger>
-            
-            {currentEvento && (
-              <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>
-                    {eventos.some(e => e.id === currentEvento.id)
-                      ? `Editar Evento - ${currentEvento.titulo}`
-                      : 'Adicionar Novo Evento'}
-                  </DialogTitle>
-                  <DialogDescription>
-                    Preencha as informações do evento
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <form onSubmit={handleEventoSubmit} className="space-y-6 py-4">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="titulo">Título do Evento *</Label>
-                      <Input
-                        id="titulo"
-                        value={currentEvento.titulo}
-                        onChange={e => handleEventoChange('titulo', e.target.value)}
-                        placeholder="Título do evento"
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="descricao">Descrição</Label>
-                      <Textarea
-                        id="descricao"
-                        value={currentEvento.descricao}
-                        onChange={e => handleEventoChange('descricao', e.target.value)}
-                        placeholder="Descrição do evento"
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="data">Data *</Label>
-                      <Input
-                        id="data"
-                        type="date"
-                        value={currentEvento.data}
-                        onChange={e => handleEventoChange('data', e.target.value)}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="hora">Hora *</Label>
-                      <Input
-                        id="hora"
-                        type="time"
-                        value={currentEvento.hora}
-                        onChange={e => handleEventoChange('hora', e.target.value)}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="whatsapp">WhatsApp</Label>
-                      <Input
-                        id="whatsapp"
-                        value={currentEvento.whatsapp}
-                        onChange={e => handleEventoChange('whatsapp', e.target.value)}
-                        placeholder="Ex: (11) 98765-4321"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="prioridade">Prioridade</Label>
-                      <Select
-                        value={currentEvento.prioridade}
-                        onValueChange={(value) => handleEventoChange('prioridade', value as Prioridade)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Selecione a prioridade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="baixa">Baixa</SelectItem>
-                          <SelectItem value="media">Média</SelectItem>
-                          <SelectItem value="alta">Alta</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="notificacaoAntecipada">Notificação Antecipada (dias)</Label>
-                    <Input
-                      id="notificacaoAntecipada"
-                      type="number"
-                      min="0"
-                      value={currentEvento.notificacaoAntecipada}
-                      onChange={e => handleEventoChange('notificacaoAntecipada', parseInt(e.target.value))}
-                    />
-                  </div>
-                  
-                  <DialogFooter>
-                    <Button type="submit">
-                      {eventos.some(e => e.id === currentEvento.id) ? 'Salvar Alterações' : 'Adicionar Evento'}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            )}
-          </Dialog>
+          <Button className="gap-1.5" onClick={initNewEvento}>
+            <Plus className="h-4 w-4" />
+            Adicionar Evento
+          </Button>
           
           <Button
             variant="outline"
@@ -552,9 +453,7 @@ const AgendaPage = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => {
-                            setCurrentEvento(evento);
-                          }}
+                          onClick={() => handleEditEvento(evento)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -593,6 +492,118 @@ const AgendaPage = () => {
           })}
         </div>
       )}
+      
+      {/* Dialog for adding/editing eventos - separate from the trigger */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] bg-white">
+          <DialogHeader>
+            <DialogTitle>
+              {currentEvento && eventos.some(e => e.id === currentEvento.id)
+                ? `Editar Evento - ${currentEvento.titulo}`
+                : 'Adicionar Novo Evento'}
+            </DialogTitle>
+            <DialogDescription>
+              Preencha as informações do evento
+            </DialogDescription>
+          </DialogHeader>
+          
+          {currentEvento && (
+            <form onSubmit={handleEventoSubmit} className="space-y-6 py-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="titulo">Título do Evento *</Label>
+                  <Input
+                    id="titulo"
+                    value={currentEvento.titulo}
+                    onChange={e => handleEventoChange('titulo', e.target.value)}
+                    placeholder="Título do evento"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="descricao">Descrição</Label>
+                  <Textarea
+                    id="descricao"
+                    value={currentEvento.descricao}
+                    onChange={e => handleEventoChange('descricao', e.target.value)}
+                    placeholder="Descrição do evento"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="data">Data *</Label>
+                  <Input
+                    id="data"
+                    type="date"
+                    value={currentEvento.data}
+                    onChange={e => handleEventoChange('data', e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="hora">Hora *</Label>
+                  <Input
+                    id="hora"
+                    type="time"
+                    value={currentEvento.hora}
+                    onChange={e => handleEventoChange('hora', e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp">WhatsApp</Label>
+                  <Input
+                    id="whatsapp"
+                    value={currentEvento.whatsapp || ''}
+                    onChange={e => handleEventoChange('whatsapp', e.target.value)}
+                    placeholder="Ex: (11) 98765-4321"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="prioridade">Prioridade</Label>
+                  <Select
+                    value={currentEvento.prioridade}
+                    onValueChange={(value) => handleEventoChange('prioridade', value as Prioridade)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione a prioridade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="baixa">Baixa</SelectItem>
+                      <SelectItem value="media">Média</SelectItem>
+                      <SelectItem value="alta">Alta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="notificacaoAntecipada">Notificação Antecipada (dias)</Label>
+                <Input
+                  id="notificacaoAntecipada"
+                  type="number"
+                  min="0"
+                  value={currentEvento.notificacaoAntecipada}
+                  onChange={e => handleEventoChange('notificacaoAntecipada', parseInt(e.target.value) || 0)}
+                />
+              </div>
+              
+              <DialogFooter>
+                <Button type="submit">
+                  {eventos.some(e => e.id === currentEvento.id) ? 'Salvar Alterações' : 'Adicionar Evento'}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
