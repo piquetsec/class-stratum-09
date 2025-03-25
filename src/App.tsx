@@ -12,13 +12,12 @@ import Alunos from "./pages/Alunos";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 
+// Create QueryClient instance
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
       <BrowserRouter>
         <Routes>
           <Route element={<Layout />}>
@@ -32,6 +31,8 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      <Toaster />
+      <Sonner />
     </TooltipProvider>
   </QueryClientProvider>
 );
