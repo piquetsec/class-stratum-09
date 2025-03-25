@@ -170,7 +170,15 @@ const AlunosPage = () => {
     });
   };
   
-  // Calculate media ponderada
+  // Calculate media simples (arithmetic average)
+  const calcularMediaSimples = (notas: Nota[]): number => {
+    if (notas.length === 0) return 0;
+    
+    const somaNotas = notas.reduce((total, nota) => total + nota.valor, 0);
+    return somaNotas / notas.length;
+  };
+  
+  // Calculate media ponderada (weighted average)
   const calcularMediaPonderada = (notas: Nota[]): number => {
     if (notas.length === 0) return 0;
     
@@ -224,6 +232,7 @@ const AlunosPage = () => {
     
     const phone = phoneMatch[0];
     const media = calcularMediaPonderada(aluno.notas);
+    const mediaSimples = calcularMediaSimples(aluno.notas);
     const situacao = determinarSituacao(aluno);
     
     const message = createStudentReportMessage(
@@ -480,7 +489,8 @@ const AlunosPage = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {alunos.map(aluno => {
-            const media = calcularMediaPonderada(aluno.notas);
+            const mediaPonderada = calcularMediaPonderada(aluno.notas);
+            const mediaSimples = calcularMediaSimples(aluno.notas);
             const percentualFaltas = calcularPercentualFaltas(aluno);
             const situacao = determinarSituacao(aluno);
             
@@ -533,10 +543,10 @@ const AlunosPage = () => {
                       <div className="grid grid-cols-2 gap-4 pt-2">
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Média</p>
-                            <p className="font-medium">{media.toFixed(1)}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Média Ponderada</p>
+                            <p className="font-medium">{mediaPonderada.toFixed(1)}</p>
                           </div>
-                          <Progress value={media * 10} className="h-2" />
+                          <Progress value={mediaPonderada * 10} className="h-2" />
                         </div>
                         
                         <div className="space-y-2">
@@ -604,10 +614,18 @@ const AlunosPage = () => {
                                   ))}
                                   <TableRow>
                                     <TableCell colSpan={2} className="font-medium text-right">
+                                      Média Simples:
+                                    </TableCell>
+                                    <TableCell className="font-medium">
+                                      {mediaSimples.toFixed(1)}
+                                    </TableCell>
+                                  </TableRow>
+                                  <TableRow>
+                                    <TableCell colSpan={2} className="font-medium text-right">
                                       Média Ponderada:
                                     </TableCell>
                                     <TableCell className="font-medium">
-                                      {media.toFixed(1)}
+                                      {mediaPonderada.toFixed(1)}
                                     </TableCell>
                                   </TableRow>
                                 </TableBody>
@@ -652,7 +670,7 @@ const AlunosPage = () => {
                             
                             {aluno.notas.length > 0 && (
                               <div className="flex items-center space-x-2">
-                                {media >= 6 ? (
+                                {mediaPonderada >= 6 ? (
                                   <>
                                     <Check className="h-4 w-4 text-green-500" />
                                     <p className="text-sm text-green-500">

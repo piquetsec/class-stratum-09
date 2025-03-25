@@ -187,6 +187,13 @@ export const exportAlunosToPDF = (alunos: Aluno[], individual?: Aluno): void => 
     yPos += 10;
     
     // Calculate media and situacao
+    // Calculate simple average
+    let mediaSimples = 0;
+    if (aluno.notas.length > 0) {
+      mediaSimples = aluno.notas.reduce((total, nota) => total + nota.valor, 0) / aluno.notas.length;
+    }
+    
+    // Calculate weighted average
     let mediaPonderada = 0;
     const somaPesos = aluno.notas.reduce((total, nota) => total + nota.peso, 0);
     
@@ -202,6 +209,7 @@ export const exportAlunosToPDF = (alunos: Aluno[], individual?: Aluno): void => 
       ['Total de Aulas:', aluno.totalAulas.toString()],
       ['Faltas:', `${aluno.faltas} (${percentualFaltas.toFixed(2)}%)`],
       ['Limite de Faltas:', `${aluno.limiteFaltas}%`],
+      ['Média Simples:', mediaSimples.toFixed(2)],
       ['Média Ponderada:', mediaPonderada.toFixed(2)],
       ['Situação:', situacao]
     ];
@@ -433,9 +441,15 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
     doc.text('3. Alunos', 14, 20);
     
     // Create summary table for all alunos
-    const alunosColumn = ['Nome', 'Total Aulas', 'Faltas', '% Faltas', 'Média', 'Situação'];
+    const alunosColumn = ['Nome', 'Total Aulas', 'Faltas', '% Faltas', 'Média Simples', 'Média Ponderada', 'Situação'];
     const alunosRows = alunos.map(aluno => {
-      // Calculate media and situacao
+      // Calculate simple average
+      let mediaSimples = 0;
+      if (aluno.notas.length > 0) {
+        mediaSimples = aluno.notas.reduce((total, nota) => total + nota.valor, 0) / aluno.notas.length;
+      }
+      
+      // Calculate weighted average
       let mediaPonderada = 0;
       const somaPesos = aluno.notas.reduce((total, nota) => total + nota.peso, 0);
       
@@ -451,6 +465,7 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
         aluno.totalAulas.toString(),
         aluno.faltas.toString(),
         `${percentualFaltas.toFixed(2)}%`,
+        mediaSimples.toFixed(2),
         mediaPonderada.toFixed(2),
         situacao
       ];
