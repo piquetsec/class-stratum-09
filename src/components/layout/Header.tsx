@@ -101,46 +101,59 @@ const Header = () => {
         </Button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Improved with solid background */}
       <div
-        className={`md:hidden fixed inset-0 z-50 bg-white dark:bg-gray-900 transform ${
+        className={`md:hidden fixed inset-0 z-50 bg-white dark:bg-gray-900 shadow-lg transform ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } transition-transform duration-300 ease-in-out pt-20`}
       >
-        <nav className="flex flex-col space-y-4 p-6">
+        <nav className="flex flex-col space-y-4 p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
           {navLinks.map((link) => (
             <Link
               key={link.path}
               to={link.path}
-              className={`text-lg font-medium transition-colors ${
+              className={`text-lg font-medium px-4 py-3 rounded-md transition-colors ${
                 isActive(link.path)
-                  ? 'text-primary'
-                  : 'text-gray-700 dark:text-gray-300'
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
               onClick={closeMenu}
             >
               {link.name}
             </Link>
           ))}
-          <div className="flex items-center space-x-4 pt-4">
+          <div className="flex items-center justify-around space-x-4 pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
-              onClick={showNotification}
-              className="focus-ring"
+              onClick={() => {
+                showNotification();
+                closeMenu();
+              }}
+              className="focus-ring w-full"
             >
-              <Bell className="h-5 w-5" />
+              <Bell className="h-5 w-5 mr-2" />
+              <span>Notificações</span>
             </Button>
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
-              onClick={toggleTheme}
-              className="focus-ring"
+              onClick={() => {
+                toggleTheme();
+                closeMenu();
+              }}
+              className="focus-ring w-full"
             >
               {theme === 'light' ? (
-                <Moon className="h-5 w-5" />
+                <>
+                  <Moon className="h-5 w-5 mr-2" />
+                  <span>Modo Escuro</span>
+                </>
               ) : (
-                <Sun className="h-5 w-5" />
+                <>
+                  <Sun className="h-5 w-5 mr-2" />
+                  <span>Modo Claro</span>
+                </>
               )}
             </Button>
           </div>
