@@ -34,6 +34,7 @@ export interface Evento {
 export interface Aluno {
   id: string;
   nome: string;
+  whatsapp?: string; // Novo campo para número de WhatsApp
   notas: Nota[];
   totalAulas: number;
   faltas: number;

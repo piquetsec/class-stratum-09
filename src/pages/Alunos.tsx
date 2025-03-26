@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { X, Edit, Trash2, FileText, Plus, Send, ChevronDown, Check, AlertTriangle } from 'lucide-react';
+import { X, Edit, Trash2, FileText, Plus, Send, ChevronDown, Check, AlertTriangle, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,7 +22,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Aluno, Nota, getAlunos, setAlunos } from '@/utils/localStorage';
 import { exportAlunosToPDF, exportAllToPDF } from '@/utils/pdfExport';
-import { createStudentReportMessage, openWhatsAppChat } from '@/utils/whatsapp';
+import { createStudentReportMessage, openWhatsAppChat, formatWhatsAppNumber } from '@/utils/whatsapp';
 
 const AlunosPage = () => {
   const { toast } = useToast();
@@ -52,6 +51,7 @@ const AlunosPage = () => {
     setCurrentAluno({
       id: Date.now().toString(),
       nome: '',
+      whatsapp: '',
       notas: [],
       totalAulas: 0,
       faltas: 0,
@@ -217,33 +217,27 @@ const AlunosPage = () => {
   
   // Send WhatsApp message with student report
   const sendStudentReport = (aluno: Aluno) => {
-    // Extract phone number from student name (assuming it's in format "Name - 11999999999")
-    const phoneRegex = /(\d{10,11})/g;
-    const phoneMatch = aluno.nome.match(phoneRegex);
-    
-    if (!phoneMatch) {
+    if (!aluno.whatsapp) {
       toast({
         title: "Erro",
-        description: "Não foi encontrado um número de telefone no nome do aluno.",
+        description: "Este aluno não possui número de WhatsApp cadastrado.",
         variant: "destructive",
       });
       return;
     }
     
-    const phone = phoneMatch[0];
     const media = calcularMediaPonderada(aluno.notas);
-    const mediaSimples = calcularMediaSimples(aluno.notas);
     const situacao = determinarSituacao(aluno);
     
     const message = createStudentReportMessage(
-      aluno.nome.replace(phoneRegex, '').trim(),
+      aluno.nome,
       media,
       aluno.faltas,
       aluno.totalAulas,
       situacao.status
     );
     
-    openWhatsAppChat(phone, message);
+    openWhatsAppChat(aluno.whatsapp, message);
     
     toast({
       title: "WhatsApp",
@@ -294,6 +288,31 @@ const AlunosPage = () => {
                         placeholder="Nome completo"
                         required
                       />
+                    </div>
+                    
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor="whatsapp">Número do WhatsApp</Label>
+                      <div className="flex">
+                        <Input
+                          id="whatsapp"
+                          value={currentAluno.whatsapp}
+                          onChange={e => handleAlunoChange('whatsapp', e.target.value)}
+                          placeholder="Ex: (11) 99999-9999"
+                          className="flex-1"
+                          type="tel"
+                        />
+                        {currentAluno.whatsapp && (
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            className="ml-2"
+                            onClick={() => openWhatsAppChat(currentAluno.whatsapp, '')}
+                          >
+                            <Phone className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500">Digite apenas números. O código do país (55) será adicionado automaticamente se necessário.</p>
                     </div>
                     
                     <div className="space-y-2">
@@ -505,6 +524,12 @@ const AlunosPage = () => {
                           <p className={`text-sm font-medium ${situacao.cor}`}>
                             {situacao.status}
                           </p>
+                          {aluno.whatsapp && (
+                            <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                              <Phone className="h-3 w-3" /> 
+                              {aluno.whatsapp}
+                            </p>
+                          )}
                         </div>
                         <div className="flex space-x-2">
                           <Button
@@ -527,6 +552,7 @@ const AlunosPage = () => {
                             variant="ghost"
                             size="icon"
                             onClick={() => sendStudentReport(aluno)}
+                            disabled={!aluno.whatsapp}
                           >
                             <Send className="h-4 w-4" />
                           </Button>
