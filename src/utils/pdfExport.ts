@@ -61,8 +61,8 @@ export const exportProfessoresToPDF = (professores: Professor[], individual?: Pr
       margin: { top: 40, left: pageMargin, right: pageMargin },
       styles: { overflow: 'linebreak', cellWidth: 'auto' },
       columnStyles: {
-        0: { fontStyle: 'bold', width: 100 },
-        1: { width: 'auto' }
+        0: { cellWidth: 100 },
+        1: { cellWidth: 'auto' }
       }
     });
     
@@ -604,3 +604,4 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
   // Save the PDF
   doc.save('relatorio_completo.pdf');
 };
+
