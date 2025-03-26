@@ -21,14 +21,17 @@ const formatCurrency = (value: number): string => {
 export const exportProfessoresToPDF = (professores: Professor[], individual?: Professor): void => {
   const doc = new jsPDF();
   
+  // Set margins to ensure content fits within A4 page
+  const pageMargin = 15;
+  
   // If individual is provided, export just that professor
   const professoresToExport = individual ? [individual] : professores;
   
   // Document title and header
   doc.setFontSize(16);
-  doc.text('Relatório de Professores', 14, 20);
+  doc.text('Relatório de Professores', pageMargin, 20);
   doc.setFontSize(10);
-  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 26);
+  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageMargin, 26);
   
   // Loop through each professor
   professoresToExport.forEach((professor, index) => {
@@ -39,7 +42,7 @@ export const exportProfessoresToPDF = (professores: Professor[], individual?: Pr
     
     // Professor info section
     doc.setFontSize(14);
-    doc.text(`Professor: ${professor.nome}`, 14, 40);
+    doc.text(`Professor: ${professor.nome}`, pageMargin, 40);
     
     // Create a table for professor details
     const professorDetailsData = [
@@ -55,7 +58,12 @@ export const exportProfessoresToPDF = (professores: Professor[], individual?: Pr
       body: professorDetailsData,
       theme: 'grid',
       headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-      margin: { top: 40 }
+      margin: { top: 40, left: pageMargin, right: pageMargin },
+      styles: { overflow: 'linebreak', cellWidth: 'auto' },
+      columnStyles: {
+        0: { fontStyle: 'bold', width: 100 },
+        1: { width: 'auto' }
+      }
     });
     
     let lastY = (doc as any).lastAutoTable.finalY + 10;
@@ -63,9 +71,9 @@ export const exportProfessoresToPDF = (professores: Professor[], individual?: Pr
     // Matérias table
     if (professor.materias.length > 0) {
       doc.setFontSize(12);
-      doc.text('Matérias Ministradas:', 14, lastY);
+      doc.text('Matérias Ministradas:', pageMargin, lastY);
       
-      const tableColumn = ['Matéria', 'Data', 'Horário', 'Local', 'Horas Aula'];
+      const tableColumn = ['Matéria', 'Data', 'Horário', 'Local', 'Horas'];
       const tableRows = professor.materias.map(materia => [
         materia.nome,
         formatDate(materia.data),
@@ -80,7 +88,16 @@ export const exportProfessoresToPDF = (professores: Professor[], individual?: Pr
         head: [tableColumn],
         body: tableRows,
         theme: 'grid',
-        headStyles: { fillColor: [41, 128, 185], textColor: 255 }
+        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+        margin: { left: pageMargin, right: pageMargin },
+        styles: { overflow: 'linebreak', cellWidth: 'auto' },
+        columnStyles: {
+          0: { cellWidth: 'auto' },
+          1: { cellWidth: 'auto' },
+          2: { cellWidth: 'auto' },
+          3: { cellWidth: 'auto' },
+          4: { cellWidth: 30 }
+        }
       });
       
       // Calculate totals
@@ -99,15 +116,16 @@ export const exportProfessoresToPDF = (professores: Professor[], individual?: Pr
         startY: lastY,
         body: summaryData,
         theme: 'grid',
-        styles: { fontStyle: 'bold' },
+        styles: { fontStyle: 'bold', overflow: 'linebreak' },
+        margin: { left: pageMargin, right: pageMargin },
         columnStyles: {
-          0: { cellWidth: 100 },
-          1: { cellWidth: 100, halign: 'right' }
+          0: { cellWidth: 120 },
+          1: { cellWidth: 'auto', halign: 'right' }
         }
       });
     } else {
       doc.setFontSize(12);
-      doc.text('Nenhuma matéria registrada.', 14, lastY);
+      doc.text('Nenhuma matéria registrada.', pageMargin, lastY);
     }
   });
   
@@ -119,17 +137,20 @@ export const exportProfessoresToPDF = (professores: Professor[], individual?: Pr
 export const exportEventosToPDF = (eventos: Evento[], individual?: Evento): void => {
   const doc = new jsPDF();
   
+  // Set margins to ensure content fits within A4 page
+  const pageMargin = 15;
+  
   // If individual is provided, export just that evento
   const eventosToExport = individual ? [individual] : eventos;
   
   // Document title and header
   doc.setFontSize(16);
-  doc.text('Relatório de Agenda', 14, 20);
+  doc.text('Relatório de Agenda', pageMargin, 20);
   doc.setFontSize(10);
-  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 26);
+  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageMargin, 26);
   
   // Create table data for all eventos
-  const tableColumn = ['Título', 'Data', 'Hora', 'Prioridade', 'WhatsApp', 'Notificação (dias)', 'Descrição'];
+  const tableColumn = ['Título', 'Data', 'Hora', 'Prioridade', 'WhatsApp', 'Notif.', 'Descrição'];
   const tableRows = eventosToExport.map(evento => [
     evento.titulo,
     formatDate(evento.data),
@@ -148,9 +169,15 @@ export const exportEventosToPDF = (eventos: Evento[], individual?: Evento): void
     theme: 'grid',
     headStyles: { fillColor: [41, 128, 185], textColor: 255 },
     styles: { overflow: 'linebreak' },
+    margin: { left: pageMargin, right: pageMargin },
     columnStyles: {
-      0: { cellWidth: 30 },
-      6: { cellWidth: 50 }
+      0: { cellWidth: 'auto' },
+      1: { cellWidth: 'auto' },
+      2: { cellWidth: 'auto' },
+      3: { cellWidth: 'auto' },
+      4: { cellWidth: 'auto' },
+      5: { cellWidth: 25 },
+      6: { cellWidth: 'auto' }
     }
   });
   
@@ -162,14 +189,17 @@ export const exportEventosToPDF = (eventos: Evento[], individual?: Evento): void
 export const exportAlunosToPDF = (alunos: Aluno[], individual?: Aluno): void => {
   const doc = new jsPDF();
   
+  // Set margins to ensure content fits within A4 page
+  const pageMargin = 15;
+  
   // If individual is provided, export just that aluno
   const alunosToExport = individual ? [individual] : alunos;
   
   // Document title and header
   doc.setFontSize(16);
-  doc.text('Relatório de Alunos', 14, 20);
+  doc.text('Relatório de Alunos', pageMargin, 20);
   doc.setFontSize(10);
-  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 26);
+  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageMargin, 26);
   
   let yPos = 35;
   
@@ -183,7 +213,7 @@ export const exportAlunosToPDF = (alunos: Aluno[], individual?: Aluno): void => 
     
     // Aluno header
     doc.setFontSize(14);
-    doc.text(`Aluno: ${aluno.nome}`, 14, yPos);
+    doc.text(`Aluno: ${aluno.nome}`, pageMargin, yPos);
     yPos += 10;
     
     // Calculate media and situacao
@@ -218,10 +248,11 @@ export const exportAlunosToPDF = (alunos: Aluno[], individual?: Aluno): void => 
       startY: yPos,
       body: infoData,
       theme: 'grid',
-      styles: { fontStyle: 'bold' },
+      styles: { fontStyle: 'bold', overflow: 'linebreak' },
+      margin: { left: pageMargin, right: pageMargin },
       columnStyles: {
         0: { cellWidth: 100 },
-        1: { cellWidth: 100 }
+        1: { cellWidth: 'auto' }
       }
     });
     
@@ -230,7 +261,7 @@ export const exportAlunosToPDF = (alunos: Aluno[], individual?: Aluno): void => 
     // Notas table
     if (aluno.notas.length > 0) {
       doc.setFontSize(12);
-      doc.text('Notas:', 14, yPos);
+      doc.text('Notas:', pageMargin, yPos);
       yPos += 5;
       
       const notasColumn = ['Descrição', 'Nota', 'Peso'];
@@ -246,11 +277,13 @@ export const exportAlunosToPDF = (alunos: Aluno[], individual?: Aluno): void => 
         head: [notasColumn],
         body: notasRows,
         theme: 'grid',
-        headStyles: { fillColor: [41, 128, 185], textColor: 255 }
+        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+        margin: { left: pageMargin, right: pageMargin },
+        styles: { overflow: 'linebreak' }
       });
     } else {
       doc.setFontSize(12);
-      doc.text('Nenhuma nota registrada.', 14, yPos);
+      doc.text('Nenhuma nota registrada.', pageMargin, yPos);
     }
   });
   
@@ -262,11 +295,14 @@ export const exportAlunosToPDF = (alunos: Aluno[], individual?: Aluno): void => 
 export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alunos: Aluno[]): void => {
   const doc = new jsPDF();
   
+  // Set margins to ensure content fits within A4 page
+  const pageMargin = 15;
+  
   // Document title and header
   doc.setFontSize(18);
-  doc.text('Relatório Completo do Sistema', 14, 20);
+  doc.text('Relatório Completo do Sistema', pageMargin, 20);
   doc.setFontSize(10);
-  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 26);
+  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageMargin, 26);
   
   let currentPage = 1;
   let totalPages = 1; // Will be updated later
@@ -287,10 +323,10 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
   if (professores.length > 0) {
     // Section title
     doc.setFontSize(16);
-    doc.text('1. Professores', 14, 35);
+    doc.text('1. Professores', pageMargin, 35);
     
-    // Create table data for all professores
-    const tableColumn = ['Nome', 'Título', 'Estatutário', 'Valor Hora/Aula', 'Total Horas', 'Total a Receber'];
+    // Create table data for all professores with adjusted column widths
+    const tableColumn = ['Nome', 'Título', 'Estatutário', 'Valor Hora', 'Horas', 'Total'];
     const tableRows = professores.map(professor => {
       const totalHoras = professor.materias.reduce((total, materia) => total + materia.horasAula, 0);
       const totalPagamento = totalHoras * professor.valorHoraAula;
@@ -305,19 +341,29 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
       ];
     });
     
-    // Add table to document
+    // Add table to document with adjusted column widths for better spacing
     autoTable(doc, {
       startY: 40,
       head: [tableColumn],
       body: tableRows,
       theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 }
+      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+      margin: { left: pageMargin, right: pageMargin },
+      styles: { overflow: 'linebreak' },
+      columnStyles: {
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 'auto' },
+        2: { cellWidth: 40 },
+        3: { cellWidth: 'auto' },
+        4: { cellWidth: 30 },
+        5: { cellWidth: 'auto' }
+      }
     });
     
     // Add detailed professor info
     const detailY = (doc as any).lastAutoTable.finalY + 10;
     doc.setFontSize(14);
-    doc.text('Detalhes dos Professores:', 14, detailY);
+    doc.text('Detalhes dos Professores:', pageMargin, detailY);
     
     let currentY = detailY + 10;
     
@@ -330,7 +376,7 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
       }
       
       doc.setFontSize(12);
-      doc.text(`${index + 1}. ${professor.nome}`, 14, currentY);
+      doc.text(`${index + 1}. ${professor.nome}`, pageMargin, currentY);
       currentY += 7;
       
       // Professor materias
@@ -350,7 +396,15 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
           body: materiasRows,
           theme: 'grid',
           headStyles: { fillColor: [52, 152, 219], textColor: 255 },
-          margin: { left: 30 }
+          margin: { left: 30, right: pageMargin },
+          styles: { overflow: 'linebreak' },
+          columnStyles: {
+            0: { cellWidth: 'auto' },
+            1: { cellWidth: 'auto' },
+            2: { cellWidth: 'auto' },
+            3: { cellWidth: 'auto' },
+            4: { cellWidth: 30 }
+          }
         });
         
         currentY = (doc as any).lastAutoTable.finalY + 15;
@@ -369,7 +423,7 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
   // 2. Eventos Section
   if (eventos.length > 0) {
     doc.setFontSize(16);
-    doc.text('2. Agenda', 14, 20);
+    doc.text('2. Agenda', pageMargin, 20);
     
     // Group eventos by month for a more structured report
     const eventosByMonth: { [key: string]: Evento[] } = {};
@@ -399,13 +453,13 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
       doc.setFontSize(14);
       const [month, year] = monthYear.split('/');
       const monthName = new Date(parseInt(year), parseInt(month) - 1).toLocaleString('pt-BR', { month: 'long' });
-      doc.text(`${monthName.charAt(0).toUpperCase() + monthName.slice(1)} de ${year}`, 14, yPos);
+      doc.text(`${monthName.charAt(0).toUpperCase() + monthName.slice(1)} de ${year}`, pageMargin, yPos);
       yPos += 10;
       
       // Sort eventos by date
       monthEventos.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
       
-      // Create table for events in this month
+      // Create table for events in this month with adjusted column widths
       const eventsColumn = ['Título', 'Data', 'Hora', 'Prioridade', 'WhatsApp', 'Descrição'];
       const eventsRows = monthEventos.map(evento => [
         evento.titulo,
@@ -422,8 +476,15 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
         body: eventsRows,
         theme: 'grid',
         headStyles: { fillColor: [231, 76, 60], textColor: 255 },
+        margin: { left: pageMargin, right: pageMargin },
+        styles: { overflow: 'linebreak' },
         columnStyles: {
-          5: { cellWidth: 50 }
+          0: { cellWidth: 'auto' },
+          1: { cellWidth: 'auto' },
+          2: { cellWidth: 'auto' },
+          3: { cellWidth: 'auto' },
+          4: { cellWidth: 'auto' },
+          5: { cellWidth: 'auto' }
         }
       });
       
@@ -438,10 +499,10 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
   // 3. Alunos Section
   if (alunos.length > 0) {
     doc.setFontSize(16);
-    doc.text('3. Alunos', 14, 20);
+    doc.text('3. Alunos', pageMargin, 20);
     
-    // Create summary table for all alunos
-    const alunosColumn = ['Nome', 'Total Aulas', 'Faltas', '% Faltas', 'Média Simples', 'Média Ponderada', 'Situação'];
+    // Create summary table for all alunos with adjusted column widths
+    const alunosColumn = ['Nome', 'Total Aulas', 'Faltas', '% Faltas', 'Média S', 'Média P', 'Situação'];
     const alunosRows = alunos.map(aluno => {
       // Calculate simple average
       let mediaSimples = 0;
@@ -464,9 +525,9 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
         aluno.nome,
         aluno.totalAulas.toString(),
         aluno.faltas.toString(),
-        `${percentualFaltas.toFixed(2)}%`,
-        mediaSimples.toFixed(2),
-        mediaPonderada.toFixed(2),
+        `${percentualFaltas.toFixed(1)}%`,
+        mediaSimples.toFixed(1),
+        mediaPonderada.toFixed(1),
         situacao
       ];
     });
@@ -476,13 +537,24 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
       head: [alunosColumn],
       body: alunosRows,
       theme: 'grid',
-      headStyles: { fillColor: [46, 204, 113], textColor: 255 }
+      headStyles: { fillColor: [46, 204, 113], textColor: 255 },
+      margin: { left: pageMargin, right: pageMargin },
+      styles: { overflow: 'linebreak' },
+      columnStyles: {
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 35 },
+        4: { cellWidth: 30 },
+        5: { cellWidth: 30 },
+        6: { cellWidth: 'auto' }
+      }
     });
     
     // Add detailed student info
     const detailY = (doc as any).lastAutoTable.finalY + 10;
     doc.setFontSize(14);
-    doc.text('Detalhes dos Alunos:', 14, detailY);
+    doc.text('Detalhes dos Alunos:', pageMargin, detailY);
     
     let currentY = detailY + 10;
     
@@ -495,7 +567,7 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
       }
       
       doc.setFontSize(12);
-      doc.text(`${index + 1}. ${aluno.nome}`, 14, currentY);
+      doc.text(`${index + 1}. ${aluno.nome}`, pageMargin, currentY);
       currentY += 7;
       
       // Aluno notas
@@ -513,7 +585,8 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
           body: notasRows,
           theme: 'grid',
           headStyles: { fillColor: [46, 204, 113], textColor: 255 },
-          margin: { left: 30 }
+          margin: { left: 30, right: pageMargin },
+          styles: { overflow: 'linebreak' }
         });
         
         currentY = (doc as any).lastAutoTable.finalY + 15;
