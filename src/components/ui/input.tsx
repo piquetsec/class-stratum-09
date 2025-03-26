@@ -1,9 +1,17 @@
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, ...props }, ref) => {
+    // Para campos numéricos, se o valor for 0, substituir por string vazia no placeholder
+    const modifiedProps = {...props};
+    if (type === 'number' && props.value === 0) {
+      modifiedProps.value = '';
+      modifiedProps.placeholder = modifiedProps.placeholder || '0';
+    }
+    
     return (
       <input
         type={type}
@@ -12,7 +20,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           className
         )}
         ref={ref}
-        {...props}
+        {...modifiedProps}
       />
     )
   }

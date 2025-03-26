@@ -25,6 +25,7 @@ const ProfessoresPage = () => {
   const [professores, setProfessoresState] = useState<Professor[]>([]);
   const [currentProfessor, setCurrentProfessor] = useState<Professor | null>(null);
   const [isAddingMaterias, setIsAddingMaterias] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newMateria, setNewMateria] = useState<Omit<Materia, 'id'>>({
     nome: '',
     data: '',
@@ -55,6 +56,7 @@ const ProfessoresPage = () => {
       estatutario: false,
       observacoes: '',
     });
+    setIsDialogOpen(true);
   };
   
   // Handle form submit for professor
@@ -92,6 +94,7 @@ const ProfessoresPage = () => {
     });
     
     setCurrentProfessor(null);
+    setIsDialogOpen(false);
   };
   
   // Handle professor field change
@@ -234,7 +237,7 @@ const ProfessoresPage = () => {
         </div>
         
         <div className="flex items-center gap-2">
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-1.5" onClick={initNewProfessor}>
                 <Plus className="h-4 w-4" />
@@ -286,7 +289,7 @@ const ProfessoresPage = () => {
                         type="number"
                         min="0"
                         step="0.01"
-                        value={currentProfessor.valorHoraAula}
+                        value={currentProfessor.valorHoraAula || ""}
                         onChange={e => handleProfessorChange('valorHoraAula', parseFloat(e.target.value) || 0)}
                         placeholder="0.00"
                         required
@@ -394,8 +397,9 @@ const ProfessoresPage = () => {
                                 type="number"
                                 min="1"
                                 step="1"
-                                value={newMateria.horasAula || ''}
+                                value={newMateria.horasAula || ""}
                                 onChange={e => setNewMateria({...newMateria, horasAula: parseInt(e.target.value) || 0})}
+                                placeholder="Quantidade de horas"
                                 required
                               />
                             </div>
@@ -559,6 +563,7 @@ const ProfessoresPage = () => {
                           size="icon"
                           onClick={() => {
                             setCurrentProfessor(professor);
+                            setIsDialogOpen(true);
                           }}
                         >
                           <Edit className="h-4 w-4" />
@@ -626,6 +631,15 @@ const ProfessoresPage = () => {
               </Card>
             );
           })}
+        </div>
+      )}
+      
+      {professores.length > 0 && (
+        <div className="flex justify-center mt-8">
+          <Button onClick={initNewProfessor} className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            Adicionar Outro Professor
+          </Button>
         </div>
       )}
     </div>
