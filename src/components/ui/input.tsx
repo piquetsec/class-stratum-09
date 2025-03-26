@@ -5,12 +5,8 @@ import { cn } from "@/lib/utils"
 
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, ...props }, ref) => {
-    // Para campos numéricos, se o valor for 0 ou 1, substituir por string vazia no placeholder
+    // For numerical fields, don't use placeholder logic that complicates editing
     const modifiedProps = {...props};
-    if (type === 'number' && (props.value === 0 || props.value === 1 || props.value === '0' || props.value === '1')) {
-      modifiedProps.value = '';
-      modifiedProps.placeholder = modifiedProps.placeholder || props.value?.toString() || '0';
-    }
     
     return (
       <input

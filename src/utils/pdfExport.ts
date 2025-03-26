@@ -1,4 +1,3 @@
-
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Professor, Materia, Evento, Aluno, Nota } from './localStorage';
@@ -17,6 +16,17 @@ const formatCurrency = (value: number): string => {
   });
 };
 
+// Calculate total hours for a professor
+const calculateTotalHours = (professor: Professor): number => {
+  return professor.materias.reduce((total, materia) => total + materia.horasAula, 0);
+};
+
+// Calculate total payment for a professor
+const calculateTotalPayment = (professor: Professor): number => {
+  const totalHours = calculateTotalHours(professor);
+  return totalHours * professor.valorHoraAula;
+};
+
 // Export professores to PDF with Excel-like formatting
 export const exportProfessoresToPDF = (professores: Professor[], individual?: Professor): void => {
   const doc = new jsPDF();
@@ -33,6 +43,16 @@ export const exportProfessoresToPDF = (professores: Professor[], individual?: Pr
   doc.setFontSize(10);
   doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageMargin, 26);
   
+  // Calculate grand total of all professors
+  if (!individual && professores.length > 0) {
+    const grandTotalPayment = professores.reduce((total, prof) => {
+      return total + calculateTotalPayment(prof);
+    }, 0);
+    
+    doc.setFontSize(12);
+    doc.text(`Total a pagar (todos os professores): ${formatCurrency(grandTotalPayment)}`, pageMargin, 33);
+  }
+  
   // Loop through each professor
   professoresToExport.forEach((professor, index) => {
     // Add a new page for each professor except the first one
@@ -42,7 +62,7 @@ export const exportProfessoresToPDF = (professores: Professor[], individual?: Pr
     
     // Professor info section
     doc.setFontSize(14);
-    doc.text(`Professor: ${professor.nome}`, pageMargin, 40);
+    doc.text(`Professor: ${professor.nome}`, pageMargin, individual ? 40 : 45);
     
     // Create a table for professor details
     const professorDetailsData = [
@@ -53,7 +73,7 @@ export const exportProfessoresToPDF = (professores: Professor[], individual?: Pr
     ];
     
     autoTable(doc, {
-      startY: 45,
+      startY: individual ? 45 : 50,
       head: [['Informação', 'Detalhe']],
       body: professorDetailsData,
       theme: 'grid',
@@ -101,8 +121,8 @@ export const exportProfessoresToPDF = (professores: Professor[], individual?: Pr
       });
       
       // Calculate totals
-      const totalHoras = professor.materias.reduce((total, materia) => total + materia.horasAula, 0);
-      const totalPagamento = totalHoras * professor.valorHoraAula;
+      const totalHoras = calculateTotalHours(professor);
+      const totalPagamento = calculateTotalPayment(professor);
       
       // Add summary table
       lastY = (doc as any).lastAutoTable.finalY + 10;
@@ -325,11 +345,24 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
     doc.setFontSize(16);
     doc.text('1. Professores', pageMargin, 35);
     
+    // Calculate and display grand total for all professors
+    const grandTotalHours = professores.reduce((total, prof) => {
+      return total + calculateTotalHours(prof);
+    }, 0);
+    
+    const grandTotalPayment = professores.reduce((total, prof) => {
+      return total + calculateTotalPayment(prof);
+    }, 0);
+    
+    doc.setFontSize(12);
+    doc.text(`Total Geral de Horas: ${grandTotalHours}`, pageMargin, 42);
+    doc.text(`Total Geral a Pagar: ${formatCurrency(grandTotalPayment)}`, pageMargin, 48);
+    
     // Create table data for all professores with adjusted column widths
     const tableColumn = ['Nome', 'Título', 'Estatutário', 'Valor Hora', 'Horas', 'Total'];
     const tableRows = professores.map(professor => {
-      const totalHoras = professor.materias.reduce((total, materia) => total + materia.horasAula, 0);
-      const totalPagamento = totalHoras * professor.valorHoraAula;
+      const totalHoras = calculateTotalHours(professor);
+      const totalPagamento = calculateTotalPayment(professor);
       
       return [
         professor.nome,
@@ -343,7 +376,7 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
     
     // Add table to document with adjusted column widths for better spacing
     autoTable(doc, {
-      startY: 40,
+      startY: 55,
       head: [tableColumn],
       body: tableRows,
       theme: 'grid',
@@ -604,4 +637,3 @@ export const exportAllToPDF = (professores: Professor[], eventos: Evento[], alun
   // Save the PDF
   doc.save('relatorio_completo.pdf');
 };
-
